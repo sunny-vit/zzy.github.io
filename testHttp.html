@@ -106,17 +106,16 @@
 	 } ; //End httpLoader
 	 
 //1. httpLoader模型读入文本文件后，把文本处理为数组。
-//2. 创建createPaper(arr)函数，把文本数组转换为：“标题” + “内容” 对象数组，为UI提供便利的数据结构
-//3. 创建createPaperUI(dad,paper)函数，利用文章的对象数据结构，动态生成一套UI，这套UI将实现文章的目录生成和其下内容的开/关互动，
+//2. 创建createPaperUI(dad,arr)函数，利用文章的对象数据结构，动态生成一套UI，实现文章的目录生成和其下段落内容的开/关互动，
 httpLoader.request('txt/paper.txt'  ) ;
 
 setTimeout(() => { 
   let arr = httpLoader.textContent ;
-  let paper = createPaper(arr) ;
-      createPaperUI($('ul') , paper);
+      createPaperUI($('ul') , arr);
     }, 6000); 
   
-  function createPaperUI(dad,paper){
+  function createPaperUI(dad,arr){
+    let paper = createPaper(arr) ;
     for(let section of paper){
       let liDom = document.createElement('li') ;
           liDom.textContent = section.title ;
@@ -140,13 +139,11 @@ setTimeout(() => {
             }
            }; // liDom onclick
           dad.appendChild(liDom);
-    } // end of createPaperUI
-   }//end of createPaperUI
-
-  function createPaper(arr){
-    let paper = [{title: arr[0] , content: [] }] ;
-    let sectionNO = 1 ;
-     for(let i=1 ; i < arr.length ; i++){
+    } // end of section
+    function createPaper(arr){
+      let paper = [{title: arr[0] , content: [] }] ;
+      let sectionNO = 1 ;
+      for(let i=1 ; i < arr.length ; i++){
       let s = arr[i] ;
       if(parseInt(s[0])){
        let section = {title: s, content:[]} ;
@@ -158,7 +155,10 @@ setTimeout(() => {
      }//end of loop arr
     //console.log(paper);
     return paper ;
-  }//end of CreatePaper
+   }//end of CreatePaper
+  }//end of createPaperUI
+
+
 
 	 var timer = { 
 	     clock : [] ,
@@ -203,7 +203,7 @@ setTimeout(() => {
    </div>
    <ul id="ul">
    </ul>
-   
+
    <script type="text/javascript">
    
    print( $('app').appendChild(document.createElement('p')), "本程序在DOM技术上，结合异步代码技术演示了web程序设计的最高心法，建议用于Web Application方向的毕业设计的难点展示。");
@@ -211,7 +211,7 @@ setTimeout(() => {
    /*************************************************
      writen by masterLijh
     2024 3 26
-   1、print函数用来在为页面上的任何已经存在的dom对象生成文字内容。
+   1、print函数用来为页面上的任何已经存在的dom对象生成文字内容。
    2、调用函数print(dom ,str)会用动画的方式把str逐个字符在页面上的dom内打印出来
    3、该函数利用了函数式编程方法，把函数看作对象，建立和利用了print.str属性
    4、该函数利用了动画API结合递归算法，实现了文字逐个输出。

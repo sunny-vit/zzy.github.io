@@ -1,90 +1,132 @@
- 	//------按用户端设备的实际情况设置基础字体和可视界面大小
-	var deviceWidth = document.body.clientWidth ;
-    var deviceHeight = window.innerHeight ;
-    var fontBase = parseInt(deviceWidth / 21); //窄屏无法显示20个汉字
-	
-    console.log('AppWidth:'+ deviceWidth);
-    console.log('AppHeight:'+ deviceHeight);
-	console.log('fontBase:'+ fontBase + 'px');
-    document.body.style.height = deviceHeight + "px" ;
-	document.body.style.fontSize = fontBase + "px" ;
+Plan.responsiveUI() ;
 
-   //设置下面2行p元素行高与父容器的高度一致，使得文字在垂直方向居中 
-        $("lessonName").style.lineHeight = deviceHeight * 0.15 + 'px' ;
-        $("chapter").style.lineHeight = deviceHeight * 0.1 + 'px' ;
-		$("statusInfo").style.lineHeight = deviceHeight * 0.1 + 'px' ;
+Plan.loadImgOneByOne() ;
 
-	//------提前下载和缓存APP需要的图片
-const booksPage = ['CS.jpg' , 'CSS.jpg' , 'CT.jpg' , 'GRE.jpg' , 'Git.jpg' , 'NinjaJS.jpg' , 'STEM.jpg' , 'UML.jpg' , 'bitCoin.jpg' , 'canvas.jpg' , 'cssAnimation.jpg' , 'gitForTeams.jpg' , 'internet.jpg' , 'javaScript.jpg' , 'learnCSS.jpg' , 'linuxCMD.jpg' , 'logic.jpg' , 'nutrition.jpg' , 'webProgramming.jpg' ] ;
-const teachersFace = ['0.jpg' , '1.jpg' , '10.jpg' , '11.jpg' , '12.jpg' , '13.jpg' , '2.jpg' , '3.jpg' , '4.jpg' , '5.jpg' , '6.jpg' , '7.jpg' , '8.jpg' , '9.jpg'  ] ;
+
+  //下面的DOM事件驱动模式，让软件的UI实现用户操作响应 
+/*
+ $('main').addEventListener("click",function(){
+	console.log("main  click!");
+	if(Model.bookIndex < UI.bookFace.length - 1){
+		Model.bookIndex ++ ;
+	}else{
+		Model.bookIndex = 0 ;
+	}
+	let index =  Model.bookIndex ;
+	this.removeChild($('bookFace')) ;
+	this.appendChild(UI.bookFace[index]) ;
+	$("bookFace").style.opacity = 0.1 ;
+	//同步代码设定动画的起点
+	setTimeout(function(){
+		 $("bookFace").style.opacity = 0.9 ;
+	},100); //异步代码设定动画的终止点 ，剩下的由CSS动画的transition函数自动完成
+  });
+  */
+  setTimeout(function(){
+   $('main').replaceChild(UI.bookFace[0],$('bookFace')) ;
+  },3000);
+
+  Model.mouse = {
+	isDown: false ,
+	x : 0 ,
+	deltaX : 0 ,
+	totalX : 0 ,
+	 } ;
+
+  $('main').addEventListener("mousedown", function(ev){
+    ev.preventDefault() ;
+	console.log("mouse is down! ");
+    Model.mouse.isDown = true ;
+	Model.mouse.x = ev.pageX ;
+   }) ;
+  $('main').addEventListener("mousemove", function(ev){
+   let mouse = Model.mouse ;
+   if (mouse.isDown){
+	   console.log("mouse is down and moving");
+	   mouse.deltaX = ev.pageX - mouse.x ;
+    if (mouse.deltaX > 5){
+       mouse.deltaX = 0 ;
+       //mouse.x = ev.pageX ;
+	   $('bookFace').style.left = $('bookFace').offsetLeft + 10 + 'px' ;
+       mouse.totalX += 1 ;
+    }
+    if (mouse.deltaX < -5){
+      mouse.deltaX = 0 ;
+      //mouse.x = ev.pageX ;
+      $('bookFace').style.left = $('bookFace').offsetLeft - 10 + 'px' ;
+      mouse.totalX -= 1 ;
+    }
+   } //end if mouse.isDown
+  }) ; //'main'.addEventListener("mousemove")
+  
+  $('main').addEventListener("mouseup", function(ev){
+	let mouse = Model.mouse ;
+        mouse.isDown = false ;
+        mouse.x = 0 ;
+         
+		if (mouse.totalX < -5)  {
+			if (Model.bookIndex < UI.bookFace.length -1  ){
+			Model.bookIndex ++ ;
+		   } else{
+			Model.bookIndex = 0 ;
+		   }
+     	 
+		}
+	   
+		if (mouse.totalX > 5)  {
+			if (Model.bookIndex > 0  ){
+			   Model.bookIndex -- ;
+			  } else{
+			   Model.bookIndex = UI.bookFace.length - 1 ;
+			  }
+		}
+
+		mouse.totalX = 0 ;
+		this.removeChild($('bookFace')) ;
+		this.appendChild(UI.bookFace[Model.bookIndex]) ;
+		$('bookFace').style.opacity =  '0.1' ;
+
+      setTimeout(function(){ 
+       $('bookFace').style.left =  '0px' ;
+       $('bookFace').style.opacity =  '0.9' ;
+      },200); 
+     }) ; //'main'.addEventListener("mouseup")
+
 
  
-
-  //将书封面的宽度设置填满客户设备的main区域，这也导致小尺寸图片back.jpg放大有模糊现象，可等图片加载后，异步更新为清晰的图片
-  $('bookPage').style.width = deviceWidth + 'px' ;
-  
-  setTimeout( ()=>$('teacherFace').src = 'myface/0.jpg' ,3000);
-  setTimeout( ()=>$('bookPage').src = 'lesson/CS.jpg' ,4000);
-  setTimeout(loadImgOneByOne,5000);
-  
- //测试封面图片在本地和在github上的巨大区别，分析异步代码的执行流程图
-   //函数也可看作对象，下面利用对象的属性，尝试ECMAscript的函数式编程功能
-	loadImgOneByOne.timer = new Date() - 1 ;
-    loadImgOneByOne.imgIndex = 0 ;
- function loadImgOneByOne(){
-	let img = new Image();
-	img.src = 'lesson/' + booksPage[loadImgOneByOne.imgIndex] ;
-	if (loadImgOneByOne.imgIndex < booksPage.length - 1){
-       loadImgOneByOne.imgIndex ++ ;
-       img.addEventListener('load', 
-		 ()=>{ 
-		  console.log(booksPage[loadImgOneByOne.imgIndex - 1]+' is loaded '+ 'within '+(new Date() - loadImgOneByOne.timer)+ " ms !")
-	      loadImgOneByOne.timer = new Date() - 1 ;
-		  loadImgOneByOne();
-	     });
-	}
-  }
-//--- 下面代码暂时选择不用，在github图片文件太多，导致性能很难改善
-
-/*
-    timer = new Date() - 1  ;
-for (let face of teachersFace ){
-	let img = new Image();
-	img.src = 'myFace/' + face ;
-	img.addEventListener('load',
-	 ()=>console.log(face+' is loaded '+ 'within '+(new Date() - timer)+ " ms !")
-		);
-}
-*/
-
-//执行异步代码，动态显示19个书面图片加载进度，下面代码表现lesson文件夹下的所有文件加载进程
-var clock = setInterval(()=>{
-      let i = loadImgOneByOne.imgIndex + 1;
-      let width = parseInt( i / booksPage.length * 100) ;
+//执行异步代码，动态显示18个书面图片加载进度，下面代码表现lesson文件夹下的所有文件加载进程
+/***
+Model.clock = setInterval(()=>{
+      let i = 1;
+      let width = parseInt( i / UI.bookFace.length * 100) ;
       //console.log("progress:" + width) ;
       $('progressBar').style.width = width + '%' ;
       if (width === 100)  {
-		   $('progressBar').textContent = "OK, Resource loaded 100%."
-		  clearInterval(clock);
+		   $('progressBar').textContent = "OK, Resource loaded 100% !"
+		  clearInterval(Model.clock);
+		  setTimeout(()=>{
+			$('progressBar').parentNode.removeChild($('progressBar'));
+			 Model.clock  = null ;
+		  },1000)
       }
     },500);
-
+ */
 
  
-
+/***关闭触屏
 //------touch events register and handel----------
 
  const chapterDom = $('chapter') ;
- const bookPageDom = $('bookPage') ;
+ const bookDom = $('bookFace') ;
        chapterDom.addEventListener("touchstart",handleStart);
 	   chapterDom.addEventListener("touchend",handleEnd);
        chapterDom.addEventListener("touchmove",handleMove);
-	   bookPageDom.addEventListener("touchstart",handleStart);
-	   bookPageDom.addEventListener("touchend",handleEnd);
-       bookPageDom.addEventListener("touchmove",handleMove);
+	   bookDom.addEventListener("touchstart",handleStart);
+	   bookDom.addEventListener("touchend",handleEnd);
+       bookDom.addEventListener("touchmove",handleMove);
       //---APP开发期间，暂时将底部状态栏设为可无限增加高度的滚动渲染模式。
-      $("statusInfo").style.display = "inline" ;
-      $("statusInfo").style.overflow = "scroll" ;
+      //$("statusInfo").style.display = "inline" ;
+      //$("statusInfo").style.overflow = "scroll" ;
 	
 	 function handleStart(e){
 	  touchModel.target = e.touches[0].target ;
@@ -147,7 +189,7 @@ var clock = setInterval(()=>{
    respondTouch : function(){
     this.deltaX = this.ongoingXY[this.ongoingXY.length-1].x - this.ongoingXY[0].x ;
 	this.deltaY = this.ongoingXY[this.ongoingXY.length-1].y - this.ongoingXY[0].y ;
-    if (Math.abs(this.deltaX) > deviceWidth / 10) {
+    if (Math.abs(this.deltaX) > UI.deviceWidth / 10) {
 		//console.log("有效滑动");
 		//console.log(this.target) ;
 
@@ -159,7 +201,7 @@ var clock = setInterval(()=>{
 		      this.preChapter() ;
 		    }
 		 }
-		if (this.target == $('bookPage') ){ //touch target is books
+		if (this.target == $('bookFace') ){ //touch target is books
 		    if (this.deltaX > 0){
               this.nextBook();
 		    }else{
@@ -192,7 +234,8 @@ var clock = setInterval(()=>{
      }else{
 	     this.bookNo -- ;
 	 }
-	 $("bookPage").src = 'lesson/' + books[this.bookNo];
+	 $("bookFace").src = 'lesson/' + books[this.bookNo];
+	
    },
    nextBook :function (){
       if (this.bookNo === books.length -1)  {
@@ -200,16 +243,9 @@ var clock = setInterval(()=>{
      }else{
 	     this.bookNo ++ ;
 	 }
-	  $("bookPage").src = 'lesson/' + books[this.bookNo];
+	  $("bookFace").src = 'lesson/' + books[this.bookNo];
+	
    },
  } ; //touchModel定义完毕
-
-
-  //$(66);检测下面的自定义函数
-  function $(eleId){
-    if (typeof eleId !== 'string'){
-	   throw("$函数调用实参错误，行参必须是字符串！");
-	   return 
-    }
-      return document.getElementById(eleId) ;
-   }
+ 
+ 关闭触屏********/ 
