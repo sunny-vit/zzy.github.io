@@ -21,9 +21,9 @@ var Plan = {} ;
       设定书的封面图片能以最佳方式显示在main区域内
    */ 
     //------按用户端设备的实际情况设置基础字体和可视界面大小
-      UI.deviceWidth = window.innerWidth ; 	
+    UI.deviceWidth = window.innerWidth >= 800 ? 800 :  window.innerWidth ; 
     UI.deviceHeight = window.innerHeight ;
-      UI.fontBase = parseInt(UI.deviceWidth / 21); //让屏幕每行显示不多于20个汉字
+    UI.fontBase = parseInt(UI.deviceWidth / 21); //让屏幕每行显示不多于20个汉字
    
    document.body.style.width = UI.deviceWidth + "px" ;
    document.body.style.height = UI.deviceHeight + "px" ;
@@ -41,7 +41,7 @@ var Plan = {} ;
     //------ lesson下的十几门课的封面和教师照片
     let booksPage = ['CS.jpg' , 'CSS.jpg' , 'CT.jpg' , 'GRE.jpg' , 'Git.jpg' , 'NinjaJS.jpg' , 'STEM.jpg' , 'UML.jpg' , 'bitCoin.jpg' , 'canvas.jpg' , 'cssAnimation.jpg' , 'gitForTeams.jpg' , 'internet.jpg' , 'javaScript.jpg' , 'learnCSS.jpg' , 'linuxCMD.jpg' , 'logic.jpg' , 'nutrition.jpg' , 'webProgramming.jpg' ] ;
     let teachersFace = ['0.jpg' , '1.jpg' , '10.jpg' , '11.jpg' , '12.jpg' , '13.jpg' , '2.jpg' , '3.jpg' , '4.jpg' , '5.jpg' , '6.jpg' , '7.jpg' , '8.jpg' , '9.jpg'  ] ;
-      let img = new Image();
+    let img = new Image();
       img.id = 'bookFace' ;
       img.src = 'lesson/' + booksPage[Model.bookIndex] ;
       if ( Model.bookIndex < booksPage.length - 1){

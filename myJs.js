@@ -4,7 +4,10 @@ Plan.loadImgOneByOne() ;
 
 
   //下面的DOM事件驱动模式，让软件的UI实现用户操作响应 
-/*
+/* 下面代码是用Model模型模拟翻书的最初阶段：
+//1.主要用Model.bookIndex记录当前书的编号，用UI.bookFace[index]实现书页图像的切换
+//2.用Web文档的DOM操作实现应用的界面变化
+//3.用CSS样式设置的动画，配合JS的异步代码，实现元素的动画效果
  $('main').addEventListener("click",function(){
 	console.log("main  click!");
 	if(Model.bookIndex < UI.bookFace.length - 1){
@@ -22,15 +25,26 @@ Plan.loadImgOneByOne() ;
 	},100); //异步代码设定动画的终止点 ，剩下的由CSS动画的transition函数自动完成
   });
   */
-  setTimeout(function(){
-   $('main').replaceChild(UI.bookFace[0],$('bookFace')) ;
-  },3000);
+ //因为有且只有第一次点击，才需要载入第一本书，如何解决这个问题，下面这2句演示了一个高智商的小技巧，
+  document.body.onclick = function(){
+	$('main').replaceChild(UI.bookFace[0],$('bookFace')) ;
+	
+	$('bookFace').style.opacity = 0 ;
+	setTimeout(function(){
+		$('bookFace').style.opacity = 0.9 ;
+	},200);
+	
+	Model.bookIndex = 0 ;
+	document.body.onclick = null ; 
+  };
 
+//本次提交精简了mouse模型，通过研究鼠标的三个底层事件：mousedown、mousemove、mouseup，设计了一个可以拖动书的图案的UI，该UI实现了软件介绍的书的切换
+//用户用鼠标拖动书的动作细节很多，包括：按下，移动，抬起，移动距离，通过逻辑综合判断这些因素设计了一个可行算法，既判断了有效拖动（包括左右实现不同的切换方向），也判断了无效拖动，展现了一个较为流畅可概念清晰的前后切换书的GUI模型，
+//最后，本例利用CSS动画开关设置，结合JS的异步代码，联合上面的mouse模型，创作除了一个有动画效果的UI。
   Model.mouse = {
 	isDown: false ,
 	x : 0 ,
 	deltaX : 0 ,
-	totalX : 0 ,
 	 } ;
 
   $('main').addEventListener("mousedown", function(ev){
@@ -40,57 +54,60 @@ Plan.loadImgOneByOne() ;
 	Model.mouse.x = ev.pageX ;
    }) ;
   $('main').addEventListener("mousemove", function(ev){
+	ev.preventDefault() ;
    let mouse = Model.mouse ;
-   if (mouse.isDown){
-	   console.log("mouse is down and moving");
+   if (mouse.isDown && $('bookFace').offsetLeft < UI.deviceWidth/2){
+	   console.log("认可的 mouse事件： down and moving");
 	   mouse.deltaX = ev.pageX - mouse.x ;
-    if (mouse.deltaX > 5){
-       mouse.deltaX = 0 ;
-       //mouse.x = ev.pageX ;
-	   $('bookFace').style.left = $('bookFace').offsetLeft + 10 + 'px' ;
-       mouse.totalX += 1 ;
-    }
-    if (mouse.deltaX < -5){
-      mouse.deltaX = 0 ;
-      //mouse.x = ev.pageX ;
-      $('bookFace').style.left = $('bookFace').offsetLeft - 10 + 'px' ;
-      mouse.totalX -= 1 ;
-    }
+	        
+	   if (mouse.deltaX ){
+		 $('bookFace').style.left = $('bookFace').offsetLeft + mouse.deltaX + 'px' ;
+	    }
    } //end if mouse.isDown
   }) ; //'main'.addEventListener("mousemove")
   
   $('main').addEventListener("mouseup", function(ev){
-	let mouse = Model.mouse ;
-        mouse.isDown = false ;
+	ev.preventDefault() ;
+   	let mouse = Model.mouse ;
+	    mouse.isDown = false ;
+	let mini = parseInt(UI.deviceWidth/3) ;
+	 if(Math.abs(mouse.deltaX) > mini){
+ 		if( mouse.deltaX > mini){
+			lastBook();
+		}else{
+			if( mouse.deltaX < - mini ){
+             nextBook() ;
+			}
+		}
         mouse.x = 0 ;
-         
-		if (mouse.totalX < -5)  {
-			if (Model.bookIndex < UI.bookFace.length -1  ){
-			Model.bookIndex ++ ;
-		   } else{
-			Model.bookIndex = 0 ;
-		   }
-     	 
-		}
-	   
-		if (mouse.totalX > 5)  {
-			if (Model.bookIndex > 0  ){
-			   Model.bookIndex -- ;
-			  } else{
-			   Model.bookIndex = UI.bookFace.length - 1 ;
-			  }
-		}
-
-		mouse.totalX = 0 ;
+		mouse.deltaX = 0 ;
 		this.removeChild($('bookFace')) ;
 		this.appendChild(UI.bookFace[Model.bookIndex]) ;
-		$('bookFace').style.opacity =  '0.1' ;
-
+		bookFace.style.opacity =  '0.1' ;
       setTimeout(function(){ 
-       $('bookFace').style.left =  '0px' ;
-       $('bookFace').style.opacity =  '0.9' ;
+		$('bookFace').style.left =  '0px' ;
+		$('bookFace').style.opacity =  '0.9' ;
       },200); 
-     }) ; //'main'.addEventListener("mouseup")
+	}else{ //end if Math.abs(mouse.deltaX) > mini,else 则需要书图回归原位
+		setTimeout(function(){ 
+			$('bookFace').style.left =  '0px' ;
+	    },200); 
+	 }
+	    function lastBook(){
+			if(Model.bookIndex > 0){
+				Model.bookIndex -- ;
+			}else{
+				Model.bookIndex = UI.bookFace.length -1
+			}
+		}
+		function nextBook(){
+			if(Model.bookIndex < UI.bookFace.length -1 ){
+				Model.bookIndex ++ ;
+			}else{
+				Model.bookIndex = 0;
+			}
+		}
+	 }) ;  //'main'.addEventListener("mouseup")
 
 
  
