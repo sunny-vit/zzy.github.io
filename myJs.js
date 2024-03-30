@@ -38,9 +38,7 @@ Plan.loadImgOneByOne() ;
 	document.body.onclick = null ; 
   };
 
-//本次提交精简了mouse模型，通过研究鼠标的三个底层事件：mousedown、mousemove、mouseup，设计了一个可以拖动书的图案的UI，该UI实现了软件介绍的书的切换
-//用户用鼠标拖动书的动作细节很多，包括：按下，移动，抬起，移动距离，通过逻辑综合判断这些因素设计了一个可行算法，既判断了有效拖动（包括左右实现不同的切换方向），也判断了无效拖动，展现了一个较为流畅可概念清晰的前后切换书的GUI模型，
-//最后，本例利用CSS动画开关设置，结合JS的异步代码，联合上面的mouse模型，创作除了一个有动画效果的UI。
+//1、本次提交精简了mouse模型，通过研究鼠标的三个底层事件：mousedown、mousemove、mouseup，设计了一个可以拖动书的图案的UI，该UI实现了软件介绍的书的切换；2、用户用鼠标拖动书的动作细节很多，包括：按下，移动，抬起，移动距离，通过逻辑综合判断这些因素设计了一个可行算法，既判断了有效拖动（包括左右实现不同的切换方向），杜绝了无效拖动，也把拖动限定在半屏范围之内，展现了一个较为流畅可概念清晰的前后切换书的GUI模型，3、最后，本例利用CSS动画开关设置，结合JS的异步代码，联合上面的mouse模型，创作除了一个有动画效果的UI。
   Model.mouse = {
 	isDown: false ,
 	x : 0 ,
@@ -56,31 +54,29 @@ Plan.loadImgOneByOne() ;
   $('main').addEventListener("mousemove", function(ev){
 	ev.preventDefault() ;
    let mouse = Model.mouse ;
-   if (mouse.isDown && $('bookFace').offsetLeft < UI.deviceWidth/2){
+   if (mouse.isDown && Math.abs($('bookFace').offsetLeft) < UI.deviceWidth / 5){
 	   console.log("认可的 mouse事件： down and moving");
 	   mouse.deltaX = ev.pageX - mouse.x ;
-	        
-	   if (mouse.deltaX ){
-		 $('bookFace').style.left = $('bookFace').offsetLeft + mouse.deltaX + 'px' ;
-	    }
+	   $('bookFace').style.left = $('bookFace').offsetLeft + mouse.deltaX + 'px' ;
+	   mouse.deltaX = 0 ;
    } //end if mouse.isDown
   }) ; //'main'.addEventListener("mousemove")
   
-  $('main').addEventListener("mouseup", function(ev){
+  $('main').addEventListener("mouseup",function(ev){
 	ev.preventDefault() ;
    	let mouse = Model.mouse ;
 	    mouse.isDown = false ;
-	let mini = parseInt(UI.deviceWidth/3) ;
-	 if(Math.abs(mouse.deltaX) > mini){
- 		if( mouse.deltaX > mini){
+	let mini = parseInt(UI.deviceWidth/5) ;
+	let offsetLeft =  $('bookFace').offsetLeft ;
+	 if( Math.abs(offsetLeft) > mini){
+ 		if( offsetLeft > mini){
 			lastBook();
 		}else{
-			if( mouse.deltaX < - mini ){
+			if( offsetLeft < - mini ){
              nextBook() ;
 			}
 		}
         mouse.x = 0 ;
-		mouse.deltaX = 0 ;
 		this.removeChild($('bookFace')) ;
 		this.appendChild(UI.bookFace[Model.bookIndex]) ;
 		bookFace.style.opacity =  '0.1' ;
@@ -99,15 +95,15 @@ Plan.loadImgOneByOne() ;
 			}else{
 				Model.bookIndex = UI.bookFace.length -1
 			}
-		}
+		  }
 		function nextBook(){
 			if(Model.bookIndex < UI.bookFace.length -1 ){
 				Model.bookIndex ++ ;
 			}else{
 				Model.bookIndex = 0;
 			}
-		}
-	 }) ;  //'main'.addEventListener("mouseup")
+		  }
+	  }) ;       //'main'.addEventListener("mouseup")
 
 
  
