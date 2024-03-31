@@ -4,6 +4,20 @@
 var Model = {} ;
     Model.clock = null ;
     Model.bookIndex = 0 ;
+	Model.prevBook = function(){
+			if(Model.bookIndex > 0){
+				Model.bookIndex -- ;
+			}else{
+				Model.bookIndex = UI.bookFace.length -1
+			}
+		  };
+		Model.nextBook = function (){
+			if(Model.bookIndex < UI.bookFace.length -1 ){
+				Model.bookIndex ++ ;
+			}else{
+				Model.bookIndex = 0;
+			}
+		  };
 
 var UI = {} ;
     UI.bookFace = [] ;
