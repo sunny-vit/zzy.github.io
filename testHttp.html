@@ -1,0 +1,252 @@
+
+<!doctype html>
+<html  lang="zh">
+ <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>增加了UI，实现了用文章的标题控制标题下的文字内容。同时改进了print函数，加强了其通用性！</title>
+  
+   <style>
+    * {
+      padding: 0 ;
+	    margin: 0 ;
+    }
+     body {
+      margin: 0;
+      padding: 0;
+      font-family:Arial, Sans-Serif;
+      background-color: black ; 
+      max-width: 800px ;
+    }
+
+     #app {
+      position: relative ;
+      background-image: url("lesson/back.jpg");
+      background-size: cover;
+        }
+	
+    #app>p{
+      color:rgb(0,200,250);
+      font-size: 1.5em;
+      text-shadow: black 3px 2px;
+    }
+
+	ul{
+    font-size:1.5em;
+	  font-family:"Consolas"}
+	ul>li{
+    color:rgb(100,250,10);
+	  text-indent: 0.5em ;
+	  margin-left: 1em ;
+    line-height: 1.5em;
+    cursor: pointer;
+	}
+  ul>li:hover{
+	  color: white ;
+    cursor: pointer;
+	}
+  ul>li>p{
+	 font-size: 0.9em;
+   font-family: 幼圆,楷体, 仿宋;
+   background-color: black;
+   color: rgb(60,150,150);
+	}
+	</style>
+	<script type="text/javascript">
+	<!--
+
+     var httpLoader = { 
+		  textContent: [] , 
+      _textContent: '' ,
+      request: function(url, interval){
+               this._request(url) ;
+               typeof interval == "number" ? interval  : interval = 2 ;
+                setTimeout(function(){  
+                 let txt = httpLoader._textContent ;
+                 if(txt.length > 1 ){
+                  httpLoader.textContent = txt.split("\n"); 
+                 }else{
+                  console.log('第'+ (new Date()).getSeconds() +'s, '+ "http获取文件失败，请查查原因！") ;
+                  setTimeout(httpLoader.request(url),interval*1000) ;
+                  console.log("延时 " + interval + " s, 再次发起http请求");
+                 }
+              },interval*1000); //设定重新发起http请求
+      } , // end of request
+          _request: function( url ){
+			         this._textContent = '' ; 
+                let xhr = new XMLHttpRequest() ;
+			          xhr.onreadystatechange = callback ; //注意：XMLHttpRequest的实例不支持 addEventListener方法
+                xhr.open('GET', url, true); //true 设定为异步请求，false为同步请求
+                xhr.send('');
+    
+				function callback(){ 
+					        if (this.readyState === 1 ){
+                    console.log("Request begin...");
+                   return ;
+                   } 
+                  if (this.readyState === 2 ){
+                    console.log("loading...");
+                    return ;
+                  } 
+                  if (this.readyState === 3 ){
+                    console.log("Http interact... ");
+                    return ;
+                  } 
+                if (this.readyState === 4 ){
+                    console.log("Request  is complete .");
+                   if (xhr.status !== 200){
+                      console.log("HttpServer refused ! ");
+                      return ;
+                   }else{
+                       httpLoader._textContent = this.responseText; 
+                   } // success of 
+                }//readyState === 4
+       }//end of callback	     
+      },//end _request method
+	 } ; //End httpLoader
+	 
+//1. httpLoader模型读入文本文件后，把文本处理为数组。
+//2. 创建createPaperUI(dad,arr)函数，利用文章的对象数据结构，动态生成一套UI，实现文章的目录生成和其下段落内容的开/关互动，
+httpLoader.request('txt/paper.txt'  ) ;
+
+setTimeout(() => { 
+  let arr = httpLoader.textContent ;
+      createPaperUI($('ul') , arr);
+    }, 6000); 
+  
+  function createPaperUI(dad,arr){
+    let paper = createPaper(arr) ;
+    for(let section of paper){
+      let liDom = document.createElement('li') ;
+          liDom.textContent = section.title ;
+          liDom.sons = section.content ;
+          liDom.openSons = false ;
+          liDom.onclick = function(ev){
+             ev.preventDefault();
+            this.openSons = ! this.openSons ;
+            if(this.openSons){
+              let pDoms = this.querySelectorAll('p');
+              for(let p of pDoms){
+                this.removeChild(p);
+              }
+            }else{
+              for(let p of this.sons){
+              let pDom = document.createElement('p') ;
+              //pDom.textContent = p ;
+              this.appendChild(pDom);
+              print(pDom, p) ;
+             }
+            }
+           }; // liDom onclick
+          dad.appendChild(liDom);
+    } // end of section
+    function createPaper(arr){
+      let paper = [{title: arr[0] , content: [] }] ;
+      let sectionNO = 1 ;
+      for(let i=1 ; i < arr.length ; i++){
+      let s = arr[i] ;
+      if(parseInt(s[0])){
+       let section = {title: s, content:[]} ;
+        paper.push(section) ;
+        sectionNO ++ ;
+      }else{
+        paper[sectionNO - 1].content.push(s) ;
+      }
+     }//end of loop arr
+    //console.log(paper);
+    return paper ;
+   }//end of CreatePaper
+  }//end of createPaperUI
+
+
+
+	 var timer = { 
+	     clock : [] ,
+			 begin : function(msg){
+			          let beginTime = new Date() - 0 ;
+					  let beginLable = msg ;
+					  this.clock.push( {beginTime , beginLable } ) ;
+			  }, // timer.begin
+			 end :  function(msg){
+			         let endTime = new Date() - 0 ;
+					 let clock  ;
+					 let length = this.clock.length ;
+					 for (let i = 0 ; i < length ; i++ ){ 
+						 if (this.clock[i].beginLable === msg){
+							 clock = this.clock[i] ;
+							 this.clock[i] = this.clock[length-1] ;
+							 this.clock.pop();
+                             return endTime - clock.beginTime ;
+							}
+					 }
+
+					 throw("你错误地使用了timer.end方法使，请查看参数："+ msg );
+					 
+			  }, // timer.end 
+			} ;
+
+		 //window对象开始读取页面所需的资源文件
+		 timer.begin('windowLoad') ; 
+		 
+		 window.addEventListener('load',function(){
+        let time =  timer.end('windowLoad') ;
+		   print( $('app').appendChild(document.createElement('p')), "APP加载完成所有资源文件，共使用 " + time + " ms!") ;
+		 }) ;
+
+		
+	//-->
+	</script>
+  </head>
+  <body>
+   <div id="app">
+    
+   </div>
+   <ul id="ul">
+   </ul>
+
+   <script type="text/javascript">
+   
+   print( $('app').appendChild(document.createElement('p')), "本程序在DOM技术上，结合异步代码技术演示了web程序设计的最高心法，建议用于Web Application方向的毕业设计的难点展示。");
+   print( $('app').appendChild(document.createElement('p')), "本文字出现6秒后，会出现一个文章的目录，点击目录可以“打开/关闭”文章内容，该文本记录了我教学中对本科生论文和毕设的讲解，全部文字超过1万字，欢迎同学们阅读消化后，用自己的语言在论文中使用。");  
+   /*************************************************
+     writen by masterLijh
+    2024 3 26
+   1、print函数用来为页面上的任何已经存在的dom对象生成文字内容。
+   2、调用函数print(dom ,str)会用动画的方式把str逐个字符在页面上的dom内打印出来
+   3、该函数利用了函数式编程方法，把函数看作对象，建立和利用了print.str属性
+   4、该函数利用了动画API结合递归算法，实现了文字逐个输出。
+   
+     ******************/
+   	function print(dom, str){
+   	  if (print.str){ //如果存在print.str则说明print函数正在异步输出中
+   		  setTimeout(()=>print(dom, str) , 1000) ;
+   		  return ;
+   	  }
+   	  print.str= str ;
+   	  dom.textContent = print.str[0] ; 
+   	  window.requestAnimationFrame(oneChar);
+   	   function oneChar(){
+   		 if(print.str.length > 1){
+   	      dom.textContent += print.str[1] ;
+          print.str = print.str.slice(1) ;
+   		  window.requestAnimationFrame(oneChar);
+   		  }else{
+   		   print.str = undefined ;
+   		  }
+   	   }
+   		} // print(dom,str)
+    
+   
+   
+   	function $(eleId){
+     if (typeof eleId !== 'string'){
+   	   throw("$函数调用实参错误，行参必须是字符串！");
+   	   return 
+     }
+      return document.getElementById(eleId) ;
+    }
+
+   </script> 
+  </body>
+ </html>
